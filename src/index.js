@@ -5,15 +5,33 @@ import 'any-observable/register/rxjs-all';
 import log from 'yalm';
 import MQTT from 'mqtt';
 
-import { SenseME } from 'haiku-senseme';
+import { SenseME } from '@docbliny/haiku-senseme';
 import { Observable, Subject } from 'rxjs';
 
 import config from './config.js';
 
 log.setLevel(config.verbosity);
 
+function afterSettled(event, settleTime, callback) {
+    this.addListener(event, handleEvent);
+
+    let timeout;
+    function handleEvent() {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        timeout = setTimeout(() => {
+            this.removeListener(event, handleEvent);
+            timeout = null;
+            callback();
+        }, settleTime);
+    }
+}
+
 SenseME
-    .on('founddevice', setupNewDevice)
+    .on('founddevice', (device) => {
+        afterSettled.call(device.listenAll(), 'change', 100, () => { setupNewDevice(device) });
+    })
     .on('lostdevice',  forgetDevice)
     .discover();
 
@@ -39,6 +57,13 @@ function setupNewDevice(device) {
         });
     }
 
+    // HACK: Fix what seems like a race condition: https://github.com/forty2/haiku2mqtt/issues/2
+    if(!client) {
+        log.debug('setupNewDevice: Client is no longer valid, skipping...');
+        return;
+    }
+
+    sendHomeAssistantDiscovery(client, device);
     client.publish(getTopic(device, 'connected'), '2', STATUS_OPTS);
 
     // observe all property changes for this device until it disappears.
@@ -108,6 +133,80 @@ function publishMessages(onError = NOOP, onComplete = NOOP) {
         onError,
         onComplete
     );
+}
+
+function sendHomeAssistantDiscovery(client, device) {
+    if(!client || !device) {
+        log.debug('sendHomeAssistantDiscovery: Missing client or device.');
+        return;
+    }
+
+    log.debug(`Sending auto-discovery for device '${device.name}', type '${device.type}'`);
+
+    let configInfo;
+
+    // Add fan
+    if(device.type.includes('FAN') === true) {
+        configInfo = {
+            name: device.name,
+            command_topic: `haiku:${device.id}/set/fan/power`,
+            state_topic: `haiku:${device.id}/status/fan/power`,
+            speed_command_topic: `haiku:${device.id}/status/fan/speed`,
+            speed_state_topic: `haiku:${device.id}/status/fan/speed`,
+            payload_on: 'on',
+            payload_off: 'off',
+            payload_low_speed: '3',
+            payload_medium_speed: '5',
+            payload_high_speed: '7',
+            speeds: [ 'off', 'low', 'medium', 'high' ],
+        };
+
+        // Send
+        client.publish(`homeassistant/fan/haiku:${device.id}/config`, JSON.stringify(configInfo));
+
+        // Add fan sensor
+        configInfo = {
+            name: device.name,
+            state_topic: `haiku:${device.id}/status/sensor/isRoomOccupied`,
+            payload_on: 'true',
+            payload_off: 'false',
+            device_class: 'occupancy',
+        };
+
+        // Send
+        client.publish(`homeassistant/binary_sensor/haiku:${device.id}/config`, JSON.stringify(configInfo));
+
+        // Add light if one exists on the device
+        if(device.device.hasLight === true) {
+            configInfo = {
+                name: device.name,
+                command_topic: `haiku:${device.id}/set/light/power`,
+                state_topic: `haiku:${device.id}/status/light/power`,
+                payload_on: 'on',
+                payload_off: 'off',
+                brightness_state_topic: `haiku:${device.id}/status/light/brightness`,
+                brightness_command_topic: `haiku:${device.id}/set/light/brightness`,
+                brightness_scale: 16,
+                on_command_type: 'brightness',
+            };
+
+            // Send
+            client.publish(`homeassistant/light/haiku:${device.id}/config`, JSON.stringify(configInfo));
+        }
+    } else if(device.type.includes('SWITCH') === true) {
+        // Add fan sensor
+        configInfo = {
+            name: device.name,
+            state_topic: `haiku:${device.id}/status/sensor/isRoomOccupied`,
+            payload_on: 'true',
+            payload_off: 'false',
+            device_class: 'occupancy',
+        };
+
+        // Send
+        client.publish(`homeassistant/binary_sensor/haiku:${device.id}/config`, JSON.stringify(configInfo));
+    }
+
 }
 
 function getMessages(client, ...topics) {

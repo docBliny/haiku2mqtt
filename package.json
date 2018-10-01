@@ -1,6 +1,6 @@
 {
-  "name": "haiku2mqtt",
-  "version": "1.0.0",
+  "name": "@docbliny/haiku2mqtt",
+  "version": "2.0.1",
   "description": "Control your Haiku SenseME devices with MQTT.",
   "bin": {
     "haiku2mqtt": "dist/index.js"
@@ -13,36 +13,36 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/forty2/haiku2mqtt.git"
+    "url": "git+https://github.com/docbliny/haiku2mqtt.git"
   },
-  "author": "Zach Bean <zb@forty2.com>",
+  "author": "Tomi Blinnikka <tomi.blinnikka@bliny.net>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/forty2/haiku2mqtt/issues"
+    "url": "https://github.com/docbliny/haiku2mqtt/issues"
   },
-  "homepage": "https://github.com/forty2/haiku2mqtt#readme",
+  "homepage": "https://github.com/docbliny/haiku2mqtt#readme",
   "dependencies": {
     "any-observable": "^0.2.0",
-    "haiku-senseme": "^1.1.0",
+    "@docbliny/haiku-senseme": "^2.0.1",
     "mqtt": "^1.14.1",
     "rxjs": "^5.0.0-beta.11",
     "yalm": "^4.0.2",
     "yargs": "^5.0.0"
   },
   "devDependencies": {
-    "babel-plugin-syntax-function-bind": "^6.13.0",
-    "babel-plugin-transform-function-bind": "^6.8.0",
-    "babel-plugin-transform-object-rest-spread": "^6.8.0",
-    "babel-preset-es2015": "^6.14.0"
+    "@babel/cli": "^7.1.2",
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-function-bind": "^7.0.0",
+    "@babel/plugin-syntax-function-bind": "^7.0.0",
+    "@babel/preset-env": "^7.0.0"
   },
   "babel": {
     "presets": [
-      "es2015"
+      "@babel/preset-env"
     ],
     "plugins": [
-      "syntax-function-bind",
-      "transform-function-bind",
-      "transform-object-rest-spread"
+      "@babel/plugin-proposal-function-bind",
+      "@babel/plugin-syntax-function-bind"
     ]
   }
 }

@@ -1,10 +1,19 @@
 # haiku2mqtt
 > A bridge between Haiku smart fans and MQTT.
 
+[![mqtt-smarthome](https://img.shields.io/badge/mqtt-smarthome-blue.svg)](https://github.com/mqtt-smarthome/mqtt-smarthome)
 [![NPM Version][npm-image]][npm-url]
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
 haiku2mqtt is a Node.js application that links SenseME-enabled devices by [Haiku](http://www.haikuhome.com/) to an MQTT broker. It is designed to be used to integrate these devices into a home automation system.
+
+## Fork info
+This fork incorporates the following changes:
+* Uses forked version of haiku-senseme: https://github.com/docBliny/haiku-senseme
+* Adds HomeAssistant MQTT auto discovery
+* Attempts to fix https://github.com/forty2/haiku2mqtt/issues/2
+* Added badge from https://github.com/forty2/haiku2mqtt/pull/1
+* Misc build updates
 
 ## Getting Started
 
