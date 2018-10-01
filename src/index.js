@@ -162,7 +162,7 @@ function sendHomeAssistantDiscovery(client, device) {
         };
 
         // Send
-        client.publish(`homeassistant/fan/haiku:${device.id}/config`, JSON.stringify(configInfo));
+        client.publish(`homeassistant/fan/haiku:${device.id}/config`, JSON.stringify(configInfo), STATUS_OPTS);
 
         // Add fan sensor
         configInfo = {
@@ -174,7 +174,7 @@ function sendHomeAssistantDiscovery(client, device) {
         };
 
         // Send
-        client.publish(`homeassistant/binary_sensor/haiku:${device.id}/config`, JSON.stringify(configInfo));
+        client.publish(`homeassistant/binary_sensor/haiku:${device.id}/config`, JSON.stringify(configInfo), STATUS_OPTS);
 
         // Add light if one exists on the device
         if(device.device.hasLight === true) {
@@ -191,7 +191,7 @@ function sendHomeAssistantDiscovery(client, device) {
             };
 
             // Send
-            client.publish(`homeassistant/light/haiku:${device.id}/config`, JSON.stringify(configInfo));
+            client.publish(`homeassistant/light/haiku:${device.id}/config`, JSON.stringify(configInfo), STATUS_OPTS);
         }
     } else if(device.type.includes('SWITCH') === true) {
         // Add fan sensor
@@ -204,7 +204,7 @@ function sendHomeAssistantDiscovery(client, device) {
         };
 
         // Send
-        client.publish(`homeassistant/binary_sensor/haiku:${device.id}/config`, JSON.stringify(configInfo));
+        client.publish(`homeassistant/binary_sensor/haiku:${device.id}/config`, JSON.stringify(configInfo), STATUS_OPTS);
     }
 
 }
