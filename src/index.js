@@ -29,6 +29,7 @@ function afterSettled(event, settleTime, callback) {
 }
 
 SenseME
+    .setConfig({ broadcastAddress: config.send_address})
     .on('founddevice', (device) => {
         afterSettled.call(device.listenAll(), 'change', 100, () => { setupNewDevice(device) });
     })

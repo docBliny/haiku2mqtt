@@ -14,6 +14,7 @@ This fork incorporates the following changes:
 * Attempts to fix https://github.com/forty2/haiku2mqtt/issues/2
 * Added badge from https://github.com/forty2/haiku2mqtt/pull/1
 * Misc build updates
+* Allows specifying which interface/IP address to send discovery requests on
 
 ## Getting Started
 
@@ -28,6 +29,7 @@ Running it is likewise easy:
 ```sh
 haiku2mqtt                      # if your MQTT broker is running on the same system
 haiku2mqtt -b mqtt://<hostname> # if your broker is running elsewhere
+haiku2mqtt -d 192.168.1.1       # if you have multiple interfaces and need to discover on a specific one
 haiku2mqtt --help               # to see the full usage documentation
 ```
 
