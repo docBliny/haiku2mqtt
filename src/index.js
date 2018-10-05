@@ -184,7 +184,7 @@ function sendHomeAssistantDiscovery(client, device) {
         client.publish(`homeassistant/binary_sensor/haiku_${formatDeviceId(device)}/config`, JSON.stringify(configInfo), STATUS_OPTS);
 
         // Add light if one exists on the device
-        if(device.device.hasLight === true) {
+        if(device.device.hasLight.value === true) {
             configInfo = {
                 name: device.name,
                 command_topic: `haiku_${formatDeviceId(device)}/set/light/power`,
