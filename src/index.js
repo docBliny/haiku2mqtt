@@ -42,7 +42,7 @@ let subjects = { };
 const STATUS_OPTS = { qos: 2, retain: true };
 
 function getTopic(dev, suffix) {
-    return `${config.name}:${dev.id}/${suffix}`;
+    return `${config.name}_${formatDeviceId(dev)}/${suffix}`;
 }
 
 function setupNewDevice(device) {
@@ -117,6 +117,10 @@ function setupNewDevice(device) {
 }
 
 function forgetDevice(device) {
+    if(!clients[device.id]) {
+        return;
+    }
+
     clients[device.id].publish(getTopic(device, 'connected'), '1', STATUS_OPTS);
 
     subjects[device.id].next();
@@ -124,7 +128,9 @@ function forgetDevice(device) {
 }
 
 function publishMessage({ topic, message, client, retain }) {
-    client.publish(topic, message !== null ? message.toString() : null, { qos: 2, retain });
+    if(client) {
+        client.publish(topic, message !== null ? message.toString() : null, { qos: 2, retain });
+    }
 }
 
 function NOOP() { }
@@ -150,10 +156,10 @@ function sendHomeAssistantDiscovery(client, device) {
     if(device.type.includes('FAN') === true) {
         configInfo = {
             name: device.name,
-            command_topic: `haiku:${device.id}/set/fan/power`,
-            state_topic: `haiku:${device.id}/status/fan/power`,
-            speed_command_topic: `haiku:${device.id}/status/fan/speed`,
-            speed_state_topic: `haiku:${device.id}/status/fan/speed`,
+            command_topic: `haiku_${formatDeviceId(device)}/set/fan/power`,
+            state_topic: `haiku_${formatDeviceId(device)}/status/fan/power`,
+            speed_command_topic: `haiku_${formatDeviceId(device)}/status/fan/speed`,
+            speed_state_topic: `haiku_${formatDeviceId(device)}/status/fan/speed`,
             payload_on: 'on',
             payload_off: 'off',
             payload_low_speed: '3',
@@ -163,49 +169,59 @@ function sendHomeAssistantDiscovery(client, device) {
         };
 
         // Send
-        client.publish(`homeassistant/fan/haiku:${device.id}/config`, JSON.stringify(configInfo), STATUS_OPTS);
+        client.publish(`homeassistant/fan/haiku_${formatDeviceId(device)}/config`, JSON.stringify(configInfo), STATUS_OPTS);
 
         // Add fan sensor
         configInfo = {
             name: device.name,
-            state_topic: `haiku:${device.id}/status/sensor/isRoomOccupied`,
+            state_topic: `haiku_${formatDeviceId(device)}/status/sensor/isRoomOccupied`,
             payload_on: 'true',
             payload_off: 'false',
             device_class: 'occupancy',
         };
 
         // Send
-        client.publish(`homeassistant/binary_sensor/haiku:${device.id}/config`, JSON.stringify(configInfo), STATUS_OPTS);
+        client.publish(`homeassistant/binary_sensor/haiku_${formatDeviceId(device)}/config`, JSON.stringify(configInfo), STATUS_OPTS);
 
         // Add light if one exists on the device
         if(device.device.hasLight === true) {
             configInfo = {
                 name: device.name,
-                command_topic: `haiku:${device.id}/set/light/power`,
-                state_topic: `haiku:${device.id}/status/light/power`,
+                command_topic: `haiku_${formatDeviceId(device)}/set/light/power`,
+                state_topic: `haiku_${formatDeviceId(device)}/status/light/power`,
                 payload_on: 'on',
                 payload_off: 'off',
-                brightness_state_topic: `haiku:${device.id}/status/light/brightness`,
-                brightness_command_topic: `haiku:${device.id}/set/light/brightness`,
+                brightness_state_topic: `haiku_${formatDeviceId(device)}/status/light/brightness`,
+                brightness_command_topic: `haiku_${formatDeviceId(device)}/set/light/brightness`,
                 brightness_scale: 16,
                 on_command_type: 'brightness',
             };
 
             // Send
-            client.publish(`homeassistant/light/haiku:${device.id}/config`, JSON.stringify(configInfo), STATUS_OPTS);
+            client.publish(`homeassistant/light/haiku_${formatDeviceId(device)}/config`, JSON.stringify(configInfo), STATUS_OPTS);
         }
     } else if(device.type.includes('SWITCH') === true) {
         // Add fan sensor
         configInfo = {
             name: device.name,
-            state_topic: `haiku:${device.id}/status/sensor/isRoomOccupied`,
+            state_topic: `haiku_${formatDeviceId(device)}/status/sensor/isRoomOccupied`,
             payload_on: 'true',
             payload_off: 'false',
             device_class: 'occupancy',
         };
 
         // Send
-        client.publish(`homeassistant/binary_sensor/haiku:${device.id}/config`, JSON.stringify(configInfo), STATUS_OPTS);
+        client.publish(`homeassistant/binary_sensor/haiku_${formatDeviceId(device)}/config`, JSON.stringify(configInfo), STATUS_OPTS);
+    }
+
+}
+
+function formatDeviceId(device) {
+    if(device && device.id) {
+        return device.id.replace(/:/g, "");
+    } else {
+        log.error("Invalid device or ID", device);
+        return "";
     }
 
 }
