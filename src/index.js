@@ -90,6 +90,7 @@ function setupNewDevice(device) {
             let match = topic.match(/([sg]et)\/(.*)$/);
             if (match) {
                 let path = match[2].split('/'), command = match[1];
+
                 let obj =
                     path.reduce(
                         (acc, x) => x in acc ? acc[x] : undefined
@@ -117,14 +118,14 @@ function setupNewDevice(device) {
 }
 
 function forgetDevice(device) {
-    if(!clients[device.id]) {
-        return;
+    if(clients[device.id]) {
+        clients[device.id].publish(getTopic(device, 'connected'), '1', STATUS_OPTS);
     }
 
-    clients[device.id].publish(getTopic(device, 'connected'), '1', STATUS_OPTS);
-
-    subjects[device.id].next();
-    subjects[device.id] = undefined;
+    if(subjects[device.id]) {
+        subjects[device.id].next();
+        subjects[device.id] = undefined;
+    }
 }
 
 function publishMessage({ topic, message, client, retain }) {
